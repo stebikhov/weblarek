@@ -17,7 +17,7 @@ export class CatalogCard extends Card<TCatalogCard> {
 
   /** DOM-элемент изображения товара */
   protected imageElement: HTMLImageElement;
-
+  
   /**
    * Создаёт экземпляр карточки каталога
    *
@@ -39,12 +39,6 @@ export class CatalogCard extends Card<TCatalogCard> {
       ".card__image",
       this.container
     );
-
-    // Навешиваем обработчик клика на всю карточку
-    // При клике будет сгенерировано событие открытия карточки
-    this.container.addEventListener("click", () => {
-      this.events.emit("card:open", { card: this.id });
-    });
   }
 
   /**

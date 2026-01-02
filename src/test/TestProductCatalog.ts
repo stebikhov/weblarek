@@ -83,7 +83,7 @@ export function testProductCatalog() {
 
   // 4. Тестирование selectProduct и getSelectedProduct
   console.log("\n4. Выбор и получение выбранного продукта");
-  catalog.selectProduct(product2);
+  catalog.selectProduct(product2.id);
   const selected = catalog.getSelectedProduct();
   console.assert(
     selected !== null && selected.id === "2",
@@ -108,7 +108,7 @@ export function testProductCatalog() {
 
   // 6. Проверка повторного выбора продукта
   console.log("\n6. Повторный выбор продукта");
-  catalog.selectProduct(product3);
+  catalog.selectProduct(product3.id);
   console.assert(
     catalog.getSelectedProduct()?.id === "3",
     "Ошибка: повторный выбор продукта не сработал"
@@ -143,7 +143,7 @@ export function testProductCatalog() {
   // 9. Комплексный тест (цепочка операций)
   console.log("\n9. Цепочка операций");
   catalog.setProducts([product1, product2, product3]);
-  catalog.selectProduct(product1);
+  catalog.selectProduct(product1.id);
   catalog.clearSelectedProduct();
   catalog.setProducts([product2]);
 

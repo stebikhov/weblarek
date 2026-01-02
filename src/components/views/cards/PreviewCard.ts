@@ -56,27 +56,10 @@ export class PreviewCard extends Card<TPreviewCard> {
       ".card__button",
       this.container
     );
+  }
 
-    // Навешиваем обработчик клика на кнопку действия
-    this.cardButton.addEventListener("click", () => {
-      // Если цена не установлена, ничего не делаем
-      if (this.price === null) {
-        return;
-      }
-
-      // Проверяем текущее состояние товара в корзине через data-атрибут
-      const currentCartStatus = this.cardButton.getAttribute("data-in-cart");
-      const isCurrentlyInCart = currentCartStatus === "true";
-
-      // В зависимости от состояния генерируем соответствующее событие
-      if (isCurrentlyInCart) {
-        // Товар уже в корзине - запрашиваем удаление
-        this.events.emit("card:delete", { card: this.id });
-      } else {
-        // Товара нет в корзине - запрашиваем добавление
-        this.events.emit("card:add", { card: this.id });
-      }
-    });
+  addButtonHandler(f: () => any): void {
+    this.cardButton.addEventListener("click", f);
   }
 
   /**
@@ -162,12 +145,10 @@ export class PreviewCard extends Card<TPreviewCard> {
     // Товар доступен - настраиваем кнопку в зависимости от состояния корзины
     if (value) {
       // Товар уже в корзине
-      this.cardButton.setAttribute("data-in-cart", "true");
       this.cardButton.textContent = "Удалить из корзины";
       this.cardButton.disabled = false;
     } else {
       // Товара нет в корзине
-      this.cardButton.removeAttribute("data-in-cart");
       this.cardButton.textContent = "Купить";
       this.cardButton.disabled = false;
     }
@@ -185,8 +166,5 @@ export class PreviewCard extends Card<TPreviewCard> {
 
     // Меняем текст кнопки на информативный
     this.cardButton.textContent = "Недоступно";
-
-    // Убираем атрибут состояния корзины
-    this.cardButton.removeAttribute("data-in-cart");
   }
 }

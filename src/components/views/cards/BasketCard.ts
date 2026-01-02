@@ -37,15 +37,12 @@ export class BasketCard extends Card<TBasketCard> {
       ".basket__item-delete",
       this.container
     );
-
-    // Настраиваем обработчик клика по кнопке удаления
-    this.itemDeleteButton.addEventListener("click", () => {
-      // При клике генерируем событие удаления карточки
-      // и передаём идентификатор товара
-      this.events.emit("card:delete", { card: this.id });
-    });
   }
 
+
+  setHandleDeleteClick(f: () => any):void {
+    this.itemDeleteButton.addEventListener('click', f);
+  }
   /**
    * Устанавливает порядковый номер товара в корзине
    *

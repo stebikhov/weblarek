@@ -1,11 +1,11 @@
-import { IProduct } from '../../types/index.ts'
-import { EventEmitter } from "../base/Events.ts";
+import { IProduct } from '../../types/index.ts';
+import { EventEmitter } from '../base/Events.ts';
 
 /**
  * Корзина покупок — управление товарами, расчёт стоимости и проверка состояния
  */
 export class ShoppingCart extends EventEmitter {
-  private items: IProduct [] = [];
+  private items: IProduct[] = [];
 
   /**
    * Добавляет товар в корзину
@@ -21,11 +21,9 @@ export class ShoppingCart extends EventEmitter {
    * @param id Идентификатор товара
    * @returns true, если товар был найден и удалён
    */
-  removeItemById(id: string): boolean {
-    const found = this.hasItem(id);
+  removeItemById(id: string): void {
     this.items = this.items.filter((item) => item.id !== id);
     this.emit('basket:changed', this.getItems());
-    return found;
   }
 
   /**
@@ -33,8 +31,9 @@ export class ShoppingCart extends EventEmitter {
    * @param id Идентификатор товара
    * @returns true, если товар есть в корзине
    */
-  hasItem(id: string): boolean {
-    return this.items.some((item) => item.id === id);
+  hasItem(id: string | undefined): boolean {
+    const res = this.items.some((item) => item.id == id);
+    return res;
   }
 
   /**

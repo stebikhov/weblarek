@@ -16,7 +16,6 @@ export class Card<T = {}> extends Component<TCard & T> {
 
   /** Элемент для отображения цены товара */
   protected priceElement: HTMLElement;
-  private _id: string = "";
 
   /**
    * Создаёт экземпляр карточки
@@ -38,29 +37,9 @@ export class Card<T = {}> extends Component<TCard & T> {
     );
   }
 
-  /**
-   * Возвращает идентификатор карточки
-   */
-  get id(): string {
-    return this._id;
+  get element(): HTMLElement {
+    return this.container;
   }
-
-  /**
-   * Устанавливает идентификатор карточки
-   *
-   * Синхронизирует значение с атрибутом id контейнера
-   * для возможности поиска элемента в DOM.
-   *
-   * @param value - Новый идентификатор
-   */
-  set id(value: string) {
-    // Сохраняем значение в свойство класса
-    this._id = value;
-
-    // Дублируем в атрибут id контейнера
-    this.container.id = value;
-  }
-
   /**
    * Устанавливает название товара
    *

@@ -94,11 +94,12 @@ export class Modal extends Component<IModal> {
     this.container.addEventListener("click", handleOverlayClick);
   }
 
-  /**
+    /**
    * Открывает модальное окно, добавляя CSS-класс активного состояния
    * @public
    */
-  open(): void {
+  open(content: HTMLElement): void {
+    this.content = content;
     this.container.classList.add("modal_active");
   }
 

@@ -1,4 +1,4 @@
-import { IProduct } from '../../types/index.ts';
+import { IProduct } from "../../types/index.ts";
 import { EventEmitter } from "../base/Events.ts";
 
 /**
@@ -14,7 +14,7 @@ export class ProductCatalog extends EventEmitter {
    */
   setProducts(products: IProduct[]): void {
     this.products = [...products]; // Защита от мутаций внешнего массива
-    this.emit('catalog:changed', this.getProducts())
+    this.emit("catalog:changed", this.getProducts());
   }
 
   /**
@@ -38,8 +38,14 @@ export class ProductCatalog extends EventEmitter {
    * Устанавливает выбранный продукт
    * @param product Продукт для выбора
    */
-  selectProduct(product: IProduct): void {
+  selectProduct(id: string): void {
+    const product = this.getProductById(id);
+    if (!product) {
+      throw new Error(`Продукт с ID "${id}" не найден в каталоге`);
+    }
+
     this.selectedProduct = product;
+    this.emit("product:selected", product); // Опционально: событие о выборе продукта
   }
 
   /**

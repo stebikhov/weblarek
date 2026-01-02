@@ -67,76 +67,73 @@ interface ValidationErrors {
 }
 
 // ═══════════════════════════════════════════════════════════════
-//                    КОНТЕЙНЕР ПРИЛОЖЕНИЯ (DI)
+//                    ГЛОБАЛЬНЫЕ ЭКЗЕМПЛЯРЫ
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Singleton-контейнер, который содержит все зависимости приложения.
- * Реализует паттерн Dependency Injection через единый доступный экземпляр.
- */
-class AppContainer {
-  private static _instance: AppContainer;
+// Инфраструктура
+const bus = new EventEmitter();
+const httpClient = new ApiClient(new Api(API_URL));
 
-  // Глобальная шина событий для коммуникации между компонентами
-  readonly bus = new EventEmitter();
+// Модели (домен)
+const catalog = new ProductCatalog();
+const cart = new ShoppingCart();
+const customer = new Buyer();
 
-  // HTTP клиент для работы с API
-  readonly httpClient = new ApiClient(new Api(API_URL));
+// Шаблоны
+const templates = {
+  success: ensureElement<HTMLTemplateElement>(Templates.SUCCESS),
+  cardCatalog: ensureElement<HTMLTemplateElement>(Templates.CARD_CATALOG),
+  cardPreview: ensureElement<HTMLTemplateElement>(Templates.CARD_PREVIEW),
+  cardBasket: ensureElement<HTMLTemplateElement>(Templates.CARD_BASKET),
+  basket: ensureElement<HTMLTemplateElement>(Templates.BASKET),
+  order: ensureElement<HTMLTemplateElement>(Templates.ORDER),
+  contacts: ensureElement<HTMLTemplateElement>(Templates.CONTACTS),
+};
 
-  // Домен (бизнес-модели)
-  readonly catalog = new ProductCatalog(); // Каталог товаров
-  readonly cart = new ShoppingCart(); // Корзина покупок
-  readonly customer = new Buyer(); // Данные покупателя
+// UI компоненты
+const header = new Header(bus, ensureElement<HTMLElement>(Selectors.HEADER));
+const gallery = new Gallery(ensureElement<HTMLElement>(Selectors.GALLERY));
+const modal = new Modal(bus, ensureElement<HTMLElement>(Selectors.MODAL));
+const basket = new Basket(bus, cloneTemplate(templates.basket));
+const orderForm = new OrderForm(bus, cloneTemplate(templates.order));
+const contactsForm = new ContactsForm(bus, cloneTemplate(templates.contacts));
+const successScreen = new Ordered(bus, cloneTemplate(templates.success));
+const preview = new PreviewCard(bus, cloneTemplate(templates.cardPreview));
 
-  // Шаблоны HTML для клонирования
-  private readonly _templates = {
-    success: ensureElement<HTMLTemplateElement>(Templates.SUCCESS),
-    cardCatalog: ensureElement<HTMLTemplateElement>(Templates.CARD_CATALOG),
-    cardPreview: ensureElement<HTMLTemplateElement>(Templates.CARD_PREVIEW),
-    cardBasket: ensureElement<HTMLTemplateElement>(Templates.CARD_BASKET),
-    basket: ensureElement<HTMLTemplateElement>(Templates.BASKET),
-    order: ensureElement<HTMLTemplateElement>(Templates.ORDER),
-    contacts: ensureElement<HTMLTemplateElement>(Templates.CONTACTS),
-  };
-
-  // UI компоненты (представление)
-  readonly ui = {
-    header: new Header(this.bus, ensureElement<HTMLElement>(Selectors.HEADER)),
-    gallery: new Gallery(ensureElement<HTMLElement>(Selectors.GALLERY)),
-    modal: new Modal(this.bus, ensureElement<HTMLElement>(Selectors.MODAL)),
-
-    // Экраны модального окна
-    basket: new Basket(this.bus, cloneTemplate(this._templates.basket)),
-    orderForm: new OrderForm(this.bus, cloneTemplate(this._templates.order)),
-    contactsForm: new ContactsForm(
-      this.bus,
-      cloneTemplate(this._templates.contacts)
-    ),
-    successScreen: new Ordered(
-      this.bus,
-      cloneTemplate(this._templates.success)
-    ),
-
-    // Карточки товаров
-    preview: new PreviewCard(
-      this.bus,
-      cloneTemplate(this._templates.cardPreview)
-    ),
-  };
-
-  /** Получить единственный экземпляр контейнера */
-  static getInstance(): AppContainer {
-    return (this._instance ??= new AppContainer());
+preview.addButtonHandler(() => {
+  // Если цена не установлена, ничего не делаем
+  if (catalog.getSelectedProduct()?.price === null) {
+    return;
   }
 
-  /** Фабрика карточек каталога */
-  createCatalogCard = () =>
-    new CatalogCard(this.bus, cloneTemplate(this._templates.cardCatalog));
+  const id = catalog.getSelectedProduct()?.id;
+  // В зависимости от состояния генерируем соответствующее событие
+  if (cart.hasItem(id)) {
+    // Товар уже в корзине - запрашиваем удаление
+    bus.emit("card:delete", { card: id });
+  } else {
+    // Товара нет в корзине - запрашиваем добавление
+    bus.emit("card:add", { card: id });
+  }
+});
 
-  /** Фабрика карточек корзины */
-  createBasketCard = () =>
-    new BasketCard(this.bus, cloneTemplate(this._templates.cardBasket));
-}
+// Фабрики карточек
+const createCatalogCard = (id: string, bus: EventEmitter) => {
+  const container = cloneTemplate(templates.cardCatalog);
+  container.addEventListener("click", () => {
+    bus.emit("card:open", { card: id });
+  });
+
+  return new CatalogCard(bus, container);
+};
+
+const createBasketCard = (id: string) => {
+  const card = new BasketCard(bus, cloneTemplate(templates.cardBasket));
+  card.setHandleDeleteClick(() => {
+    bus.emit("card:delete", { card: id });
+  });
+  return card;
+};
 
 // ═══════════════════════════════════════════════════════════════
 //                    ФУНКЦИИ ОТОБРАЖЕНИЯ
@@ -145,34 +142,30 @@ class AppContainer {
 /**
  * Строит и отображает каталог товаров в галерее
  */
-const buildCatalogView = (container: AppContainer): void => {
-  const { catalog, ui, createCatalogCard } = container;
-
+const buildCatalogView = (): void => {
   const cardElements = catalog.getProducts().map((product) => {
-    const cardView = createCatalogCard();
     const { id, title, image, category, price } = product;
+    const cardView = createCatalogCard(id, bus);
+
     return cardView.render({ id, title, image, category, price });
   });
 
-  ui.gallery.render({ catalog: cardElements });
+  gallery.render({ catalog: cardElements });
 };
 
 /**
  * Строит и отображает содержимое корзины в модальном окне
  */
-const buildBasketView = (container: AppContainer): void => {
-  const { cart, ui, createBasketCard } = container;
+const buildBasketView = (): void => {
   const cartItems = cart.getItems();
 
-  // Создаем карточки для каждого товара в корзине
   const renderedItems = cartItems.map((product, idx) => {
-    const cardView = createBasketCard();
-    cardView.index = idx + 1; // Номер позиции в корзине
+    const cardView = createBasketCard(product.id);
+    cardView.index = idx + 1;
     return cardView.render(product);
   });
 
-  // Обновляем данные экрана корзины
-  Object.assign(ui.basket, {
+  Object.assign(basket, {
     items: renderedItems,
     total: cart.getTotalPrice(),
   });
@@ -181,13 +174,10 @@ const buildBasketView = (container: AppContainer): void => {
 /**
  * Синхронизирует состояние кнопки "В корзину" в превью товара
  */
-const syncPreviewButtonState = (container: AppContainer): void => {
-  const { cart, ui } = container;
-  const currentProductId = ui.preview.id;
-
-  if (currentProductId) {
-    // Показываем состояние "Уже в корзине" если товар добавлен
-    ui.preview.inCart = cart.hasItem(currentProductId);
+const syncPreviewButtonState = (): void => {
+  const product = catalog.getSelectedProduct();
+  if (product?.id) {
+    preview.inCart = cart.hasItem(product?.id);
   }
 };
 
@@ -198,27 +188,24 @@ const syncPreviewButtonState = (container: AppContainer): void => {
 /**
  * Настройка событий для работы с каталогом товаров
  */
-const setupCatalogEvents = (ctx: AppContainer): void => {
-  const { bus, catalog, cart, ui } = ctx;
-
+const setupCatalogEvents = (): void => {
   // При изменении каталога пересобираем галерею
-  catalog.on("catalog:changed", () => buildCatalogView(ctx));
+  catalog.on("catalog:changed", buildCatalogView);
 
   // Открытие подробной карточки товара
   bus.on("card:open", ({ card: productId }: CardActionPayload) => {
+    catalog.selectProduct(productId);
     const product = catalog.getProductById(productId);
     if (!product) return;
 
-    const hasPriceTag = product.price !== null; // Есть ли цена у товара
+    const hasPriceTag = product.price !== null;
 
-    // Отображаем подробную информацию о товаре
-    ui.preview.render({
+    preview.render({
       ...product,
       inCart: cart.hasItem(product.id),
     });
 
-    // Показываем модалку с товаром
-    ui.modal.content = ui.preview.render({
+    let content = preview.render({
       id: product.id,
       title: product.title,
       price: product.price,
@@ -227,10 +214,9 @@ const setupCatalogEvents = (ctx: AppContainer): void => {
       description: product.description,
       inCart: cart.hasItem(product.id),
     });
-    ui.modal.open();
+    modal.open(content);
 
-    // Блокируем кнопку если нет цены
-    if (!hasPriceTag) ui.preview.disableButton();
+    if (!hasPriceTag) preview.disableButton();
   });
 
   // Добавление товара в корзину
@@ -250,57 +236,47 @@ const setupCatalogEvents = (ctx: AppContainer): void => {
 /**
  * Настройка событий для работы с корзиной
  */
-const setupCartEvents = (ctx: AppContainer): void => {
-  const { bus, cart, customer, ui } = ctx;
-
+const setupCartEvents = (): void => {
   // При любом изменении корзины обновляем счетчик и содержимое
   cart.on("basket:changed", () => {
-    ui.header.counter = cart.getItemCount(); // Счетчик в хедере
-    buildBasketView(ctx); // Корзина в модалке
-    syncPreviewButtonState(ctx); // Кнопка в превью
+    header.counter = cart.getItemCount();
+    buildBasketView();
+    syncPreviewButtonState();
   });
 
   // Открытие корзины
   bus.on("basket:open", () => {
-    buildBasketView(ctx);
-    ui.modal.content = ui.basket.render();
-    ui.modal.open();
+    let content = basket.render();
+    modal.open(content);
   });
 
-  // Переход к оформлению заказа (корзина готова)
+  // Переход к оформлению заказа
   bus.on("basket:ready", () => {
-    const hasItems = cart.getItemCount() > 0;
-    if (!hasItems) return; // Корзина пуста - выходим
-
-    // Очищаем данные покупателя и заполняем форму
     customer.clear();
     const { payment, address } = customer.getData();
-    ui.orderForm.payment = payment;
-    ui.orderForm.addressValue = address;
+    orderForm.payment = payment;
+    orderForm.addressValue = address;
 
-    ui.modal.content = ui.orderForm.render();
-    ui.modal.open();
+    modal.open(orderForm.render());
   });
 };
 
 /**
  * Настройка событий для оформления заказа
  */
-const setupCheckoutEvents = (ctx: AppContainer): void => {
-  const { bus, cart, customer, ui, httpClient } = ctx;
-
+const setupCheckoutEvents = (): void => {
   // Маппинг полей формы на методы модели Buyer
   const fieldSetters: Record<FormFieldName, (val: string) => void> = {
-    payment: (v) => customer.setField("payment", v as TPayment), // Способ оплаты
-    address: (v) => customer.setField("address", v), // Адрес доставки
-    email: (v) => customer.setField("email", v), // Email
-    phone: (v) => customer.setField("phone", v), // Телефон
+    payment: (v) => customer.setField("payment", v as TPayment),
+    address: (v) => customer.setField("address", v),
+    email: (v) => customer.setField("email", v),
+    phone: (v) => customer.setField("phone", v),
   };
 
   // Показ ошибок валидации в формах
   customer.on("form:errors", (errors: ValidationErrors) => {
-    ui.orderForm.validateForm(errors);
-    ui.contactsForm.validateForm(errors);
+    orderForm.validateForm(errors);
+    contactsForm.validateForm(errors);
   });
 
   // Изменение полей формы заказа
@@ -311,36 +287,38 @@ const setupCheckoutEvents = (ctx: AppContainer): void => {
   // Переход к форме контактов
   bus.on("order:next", () => {
     const { email, phone } = customer.getData();
-    ui.contactsForm.emailValue = email; // Предзаполняем email
-    ui.contactsForm.phoneValue = phone; // Предзаполняем телефон
-    ui.modal.content = ui.contactsForm.render();
+    contactsForm.emailValue = email;
+    contactsForm.phoneValue = phone;
+    modal.content = contactsForm.render();
   });
 
   // Отправка заказа на сервер
   bus.on("contacts:submit", async () => {
     const customerInfo = customer.getData();
 
-    // Формируем данные заказа для API
     const orderPayload: IOrder = {
       ...customerInfo,
       email: customerInfo.email ?? "",
       phone: customerInfo.phone ?? "",
       address: customerInfo.address ?? "",
-      total: cart.getTotalPrice(), // Итоговая сумма
-      items: cart.getItems().map((p) => p.id), // Список ID товаров
+      total: cart.getTotalPrice(),
+      items: cart.getItems().map((p) => p.id),
     };
 
     try {
-      // Отправляем заказ
-      await httpClient.sendOrder(orderPayload);
+      const orderResponse = await httpClient.sendOrder(orderPayload);
 
-      // Очищаем состояние после успешного заказа
+      // Проверяем, что ответ содержит поле total
+      if (typeof orderResponse.total === "number") {
+        successScreen.total = orderResponse.total;
+      } else {
+        console.warn("Сервер не вернул поле total");
+      }
+
       cart.clear();
       customer.clear();
 
-      // Показываем экран успеха
-      ui.successScreen.total = orderPayload.total;
-      ui.modal.content = ui.successScreen.render();
+      modal.content = successScreen.render();
     } catch (err) {
       console.error("Не удалось оформить заказ:", err);
     }
@@ -348,8 +326,8 @@ const setupCheckoutEvents = (ctx: AppContainer): void => {
 
   // Закрытие экрана успеха
   bus.on("success:closed", () => {
-    cart.clear(); // Очищаем корзину
-    ui.modal.close(); // Закрываем модалку
+    cart.clear();
+    modal.close();
   });
 };
 
@@ -357,21 +335,16 @@ const setupCheckoutEvents = (ctx: AppContainer): void => {
 //                    ТОЧКА ВХОДА В ПРИЛОЖЕНИЕ
 // ═══════════════════════════════════════════════════════════════
 
-/**
- * Главная функция инициализации приложения
- */
 (async function main() {
-  const app = AppContainer.getInstance();
-
   // Подключаем все обработчики событий
-  [setupCatalogEvents, setupCartEvents, setupCheckoutEvents].forEach((setup) =>
-    setup(app)
-  );
+  setupCatalogEvents();
+  setupCartEvents();
+  setupCheckoutEvents();
 
   // Загружаем начальные данные (каталог товаров)
   try {
-    const products = await app.httpClient.getCatalog();
-    app.catalog.setProducts(products); // Обновляем каталог → триггерит перерисовку
+    const products = await httpClient.getCatalog();
+    catalog.setProducts(products); // Обновляем каталог → триггерит перерисовку
   } catch (err) {
     console.error("Не удалось загрузить каталог:", err);
   }

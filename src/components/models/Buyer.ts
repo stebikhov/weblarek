@@ -18,6 +18,7 @@ export class Buyer extends EventEmitter {
    */
   update(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
+    this.emit('form:errors', this.validate());
   }
 
   /**
@@ -60,7 +61,6 @@ export class Buyer extends EventEmitter {
       errors.address = "Укажите адрес доставки";
     }
 
-    this.emit('form:errors', errors);
     return errors;
   }
 

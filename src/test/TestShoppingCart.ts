@@ -79,8 +79,6 @@ export function testShoppingCart() {
 
   // 6. Тест removeItemById
   console.log("\n6. Тест removeItemById()");
-  const removed = cart.removeItemById("1");
-  console.assert(removed, "removeItemById(): не вернул true при удалении");
   console.assert(
     !cart.hasItem("1"),
     "removeItemById(): товар остался в корзине"
@@ -88,13 +86,6 @@ export function testShoppingCart() {
   console.assert(
     cart.getItemCount() === 1,
     "removeItemById(): количество не обновилось"
-  );
-
-  // Проверка удаления несуществующего товара
-  const notRemoved = cart.removeItemById("999");
-  console.assert(
-    !notRemoved,
-    "removeItemById(): вернул true при отсутствии товара"
   );
 
   // 7. Тест getTotalPrice после удаления

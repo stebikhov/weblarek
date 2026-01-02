@@ -9,8 +9,6 @@ import { ensureElement } from "../../../utils/utils.ts";
 interface IBasket {
   /** Массив HTML-элементов карточек товаров в корзине */
   items: HTMLElement[];
-  /** Общая стоимость всех товаров в корзине */
-  totalAmount: number;
 }
 
 /**
@@ -25,7 +23,6 @@ export class Basket extends Component<IBasket> {
   protected listElements: HTMLElement;
   protected priceElements: HTMLElement;
   protected basketButton: HTMLButtonElement;
-  private readonly SCROLL_LIMIT = 4;
   private readonly EMPTY_MARKUP = "<div>Корзина пуста</div>";
 
   /**
@@ -78,14 +75,8 @@ export class Basket extends Component<IBasket> {
     // Определяем, пуста ли корзина
     const isEmpty = nodes.length === 0;
 
-    // Определяем, нужна ли прокрутка (товаров больше лимита)
-    const needsScroll = nodes.length > this.SCROLL_LIMIT;
-
     // Обновляем содержимое списка товаров
     this.updateContent(nodes, isEmpty);
-
-    // Синхронизируем CSS-классы в зависимости от состояния
-    this.syncClasses(isEmpty, needsScroll);
 
     // Блокируем кнопку оформления, если корзина пуста
     this.basketButton.disabled = isEmpty;
@@ -122,19 +113,10 @@ export class Basket extends Component<IBasket> {
   }
 
   /**
-   * Синхронизирует CSS-классы списка с текущим состоянием
-   *
-   * Добавляет/убирает классы для стилизации пустого состояния
-   * и отображения прокрутки при большом количестве товаров.
-   *
-   * @param empty - Флаг пустой корзины
-   * @param scroll - Флаг необходимости прокрутки
+   * Устанавливает состояние доступности кнопки "Оформить".
+   * @param disabled - true для блокировки кнопки, false для активации
    */
-  private syncClasses(empty: boolean, scroll: boolean): void {
-    // Класс пустого состояния — добавляем если корзина пуста
-    this.listElements.classList.toggle("basket__list_empty", empty);
-
-    // Класс прокрутки — добавляем только если нужна прокрутка И корзина не пуста
-    this.listElements.classList.toggle("basket__list_scroll", scroll && !empty);
+  disableCheckoutButton(disabled: boolean): void {
+    this.basketButton.disabled = disabled;
   }
 }
