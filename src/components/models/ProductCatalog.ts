@@ -1,9 +1,10 @@
-import { IProduct } from "../../types";
+import { IProduct } from '../../types/index.ts';
+import { EventEmitter } from "../base/Events.ts";
 
 /**
  * Управление коллекцией продуктов и выбранным продуктом
  */
-class ProductCatalog {
+export class ProductCatalog extends EventEmitter {
   private products: IProduct[] = [];
   private selectedProduct: IProduct | null = null;
 
@@ -13,6 +14,7 @@ class ProductCatalog {
    */
   setProducts(products: IProduct[]): void {
     this.products = [...products]; // Защита от мутаций внешнего массива
+    this.emit('catalog:changed', this.getProducts())
   }
 
   /**

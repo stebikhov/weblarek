@@ -1,10 +1,11 @@
-import { IBuyer } from "../../types";
+import { IBuyer, IErrors } from '../../types/index.ts'
+import { EventEmitter } from "../base/Events.ts";
 
 /**
  * Класс для управления данными покупателя и их валидации
  */
-class Buyer {
-  private data: IBuyer = {
+export class Buyer extends EventEmitter {
+   private data: IBuyer = {
     payment: null,
     email: null,
     phone: null,
@@ -39,13 +40,13 @@ class Buyer {
     };
   }
 
-  /**
+    /**
    * Проверяет валидность данных покупателя
    * @returns Объект с сообщениями об ошибках (пустой, если ошибок нет)
    */
-  validate(): Record<keyof IBuyer, string> {
-    const errors: Partial<Record<keyof IBuyer, string>> = {};
-
+  validate(): IErrors {
+    const errors: IErrors = {};
+    
     if (this.data.payment === null) {
       errors.payment = "Укажите вид оплаты";
     }
@@ -59,7 +60,8 @@ class Buyer {
       errors.address = "Укажите адрес доставки";
     }
 
-    return errors as Record<keyof IBuyer, string>;
+    this.emit('form:errors', errors);
+    return errors;
   }
 
   /**
@@ -86,6 +88,7 @@ class Buyer {
    */
   setField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void {
     this.data[field] = value;
+    this.emit('form:errors', this.validate());
   }
 }
 

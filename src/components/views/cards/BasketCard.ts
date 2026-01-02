@@ -1,0 +1,58 @@
+import { IEvents } from "../../base/Events.ts";
+import { ensureElement } from "../../../utils/utils.ts";
+import { Card } from "./Card.ts";
+import { TBasketCard } from "../../../types/index.ts";
+
+/**
+ * Карточка товара в корзине
+ *
+ * Расширяет базовую карточку, добавляя:
+ * - порядковый номер товара в списке
+ * - кнопку удаления из корзины
+ */
+export class BasketCard extends Card<TBasketCard> {
+  /** Элемент для отображения порядкового номера */
+  protected indexElement: HTMLElement;
+
+  /** Кнопка удаления товара из корзины */
+  protected itemDeleteButton: HTMLButtonElement;
+
+  /**
+   * Создаёт экземпляр карточки корзины
+   *
+   * @param events - Брокер событий для коммуникации с другими компонентами
+   * @param container - HTML-элемент контейнера карточки
+   */
+  constructor(protected events: IEvents, container: HTMLElement) {
+    // Вызываем конструктор родительского класса Card
+    super(container);
+
+    // Находим и сохраняем ссылки на DOM-элементы
+    this.indexElement = ensureElement<HTMLElement>(
+      ".basket__item-index",
+      this.container
+    );
+
+    this.itemDeleteButton = ensureElement<HTMLButtonElement>(
+      ".basket__item-delete",
+      this.container
+    );
+
+    // Настраиваем обработчик клика по кнопке удаления
+    this.itemDeleteButton.addEventListener("click", () => {
+      // При клике генерируем событие удаления карточки
+      // и передаём идентификатор товара
+      this.events.emit("card:delete", { card: this.id });
+    });
+  }
+
+  /**
+   * Устанавливает порядковый номер товара в корзине
+   *
+   * @param value - Числовое значение индекса (начиная с 1)
+   */
+  set index(value: number) {
+    // Преобразуем число в строку и выводим в элемент
+    this.indexElement.textContent = value.toString();
+  }
+}

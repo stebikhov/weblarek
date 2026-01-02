@@ -1,3 +1,5 @@
+import { categoryMap } from "../utils/constants";
+
 export type ApiPostMethods = "POST" | "PUT" | "DELETE";
 
 export interface IApi {
@@ -9,7 +11,7 @@ export interface IApi {
   ): Promise<T>;
 }
 
-type TPayment = null | "card" | "cash";
+export type TPayment = null | "card" | "cash";
 
 export interface IProduct {
   id: string;
@@ -42,3 +44,44 @@ export type TOrderResponse = {
   id: string;
   total: number;
 };
+
+export interface IErrors {
+  payment?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+}
+
+export type TCard = Pick<IProduct, "title" | "price" | "id">;
+
+export type TBasketCard = { index: number } & TCard;
+
+export type CategoryKey = keyof typeof categoryMap;
+
+export type TCatalogCard = Pick<IProduct, "category" | "image"> & TCard;
+
+export type TPreviewCard = Pick<
+  IProduct,
+  "category" | "image" | "description"
+> &
+  TCard & {
+    inCart?: boolean;
+  };
+
+export type TForm = {
+  formElement: HTMLFormElement;
+  formErrors: HTMLElement;
+  nextButton: HTMLButtonElement;
+  formInputs: HTMLInputElement[];
+};
+
+export type TOrderForm = {
+  addressElement: HTMLInputElement;
+  cashButton: HTMLButtonElement;
+  cardButton: HTMLButtonElement;
+} & TForm;
+
+export type TContactsForm = {
+  emailElement: HTMLInputElement;
+  phoneElement: HTMLInputElement;
+} & TForm;
