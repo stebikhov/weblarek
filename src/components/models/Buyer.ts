@@ -1,15 +1,15 @@
-import { IBuyer, IErrors } from '../../types/index.ts'
+import { IBuyer, IErrors } from "../../types/index.ts";
 import { EventEmitter } from "../base/Events.ts";
 
 /**
  * Класс для управления данными покупателя и их валидации
  */
 export class Buyer extends EventEmitter {
-   private data: IBuyer = {
-    payment: null,
-    email: null,
-    phone: null,
-    address: null,
+  private data: IBuyer = {
+    payment: "",
+    email: "",
+    phone: "",
+    address: "",
   };
 
   /**
@@ -18,7 +18,7 @@ export class Buyer extends EventEmitter {
    */
   update(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
-    this.emit('form:errors', this.validate());
+    this.emit("form:errors", this.validate());
   }
 
   /**
@@ -34,21 +34,21 @@ export class Buyer extends EventEmitter {
    */
   clear(): void {
     this.data = {
-      payment: null,
-      email: null,
-      phone: null,
-      address: null,
+      payment: "",
+      email: "",
+      phone: "",
+      address: "",
     };
   }
 
-    /**
+  /**
    * Проверяет валидность данных покупателя
    * @returns Объект с сообщениями об ошибках (пустой, если ошибок нет)
    */
   validate(): IErrors {
     const errors: IErrors = {};
-    
-    if (this.data.payment === null) {
+
+    if (this.data.payment === null || this.data.payment.trim() === "") {
       errors.payment = "Укажите вид оплаты";
     }
     if (this.data.email === null || this.data.email.trim() === "") {
@@ -88,7 +88,7 @@ export class Buyer extends EventEmitter {
    */
   setField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void {
     this.data[field] = value;
-    this.emit('form:errors', this.validate());
+    this.emit("form:errors", this.validate());
   }
 }
 

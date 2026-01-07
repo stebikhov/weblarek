@@ -11,7 +11,7 @@ export interface IApi {
   ): Promise<T>;
 }
 
-export type TPayment = null | "card" | "cash";
+export type TPayment = "" | "card" | "cash";
 
 export interface IProduct {
   id: string;

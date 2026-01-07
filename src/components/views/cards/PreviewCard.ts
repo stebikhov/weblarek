@@ -25,7 +25,6 @@ export class PreviewCard extends Card<TPreviewCard> {
 
   // Флаг наличия товара в корзине
   protected _inCart: boolean = false;
-
   /**
    * Создаёт экземпляр превью карточки
    *
@@ -166,5 +165,12 @@ export class PreviewCard extends Card<TPreviewCard> {
 
     // Меняем текст кнопки на информативный
     this.cardButton.textContent = "Недоступно";
+  }
+
+  // Вернуть корневой DOM-элемент
+  render(data?: Partial<TPreviewCard>): HTMLElement {
+    const result = super.render(data);
+    if (data!.price == null) this.disableButton();
+    return result;
   }
 }

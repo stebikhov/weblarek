@@ -1,7 +1,7 @@
 import "./scss/styles.scss";
 
 // === Типы и константы ===
-import type { IOrder, TPayment } from "./types/index.ts";
+import type { IErrors, IOrder, TPayment } from "./types/index.ts";
 import { API_URL } from "./utils/constants";
 import { ensureElement, cloneTemplate } from "./utils/utils.ts";
 
@@ -61,11 +61,6 @@ interface CardActionPayload {
   card: string; // ID товара
 }
 
-// Ошибки валидации формы
-interface ValidationErrors {
-  [key: string]: string | undefined;
-}
-
 // ═══════════════════════════════════════════════════════════════
 //                    ГЛОБАЛЬНЫЕ ЭКЗЕМПЛЯРЫ
 // ═══════════════════════════════════════════════════════════════
@@ -106,33 +101,32 @@ preview.addButtonHandler(() => {
     return;
   }
 
-  const id = catalog.getSelectedProduct()?.id;
+  const selectedProduct = catalog.getSelectedProduct();
   // В зависимости от состояния генерируем соответствующее событие
-  if (cart.hasItem(id)) {
+  if (cart.hasItem(selectedProduct?.id)) {
     // Товар уже в корзине - запрашиваем удаление
-    bus.emit("card:delete", { card: id });
+    bus.emit("card:delete", { card: selectedProduct?.id });
   } else {
     // Товара нет в корзине - запрашиваем добавление
-    bus.emit("card:add", { card: id });
+    bus.emit("card:add", { card: selectedProduct?.id });
   }
 });
 
 // Фабрики карточек
 const createCatalogCard = (id: string, bus: EventEmitter) => {
-  const container = cloneTemplate(templates.cardCatalog);
-  container.addEventListener("click", () => {
-    bus.emit("card:open", { card: id });
+  return new CatalogCard(bus, cloneTemplate(templates.cardCatalog), {
+    onClick: () => {
+      bus.emit("card:select", { card: id });
+    },
   });
-
-  return new CatalogCard(bus, container);
 };
 
 const createBasketCard = (id: string) => {
-  const card = new BasketCard(bus, cloneTemplate(templates.cardBasket));
-  card.setHandleDeleteClick(() => {
-    bus.emit("card:delete", { card: id });
+  return new BasketCard(bus, cloneTemplate(templates.cardBasket), {
+    onClick: () => {
+      bus.emit("card:delete", { card: id });
+    },
   });
-  return card;
 };
 
 // ═══════════════════════════════════════════════════════════════
@@ -181,6 +175,31 @@ const syncPreviewButtonState = (): void => {
   }
 };
 
+/**
+ * Открытие карточки товара
+ */
+const showCard = (): void => {
+  const product = catalog.getSelectedProduct();
+  if (product) {
+    const content = preview.render({
+      ...product,
+      inCart: cart.hasItem(product.id),
+    });
+
+    modal.open(content);
+  }
+};
+
+/**
+ * Выбор карточки товара
+ */
+const selectCard = ({ card: productId }: CardActionPayload) => {
+  const product = catalog.getProductById(productId);
+  if (!product) return;
+
+  catalog.selectProduct(productId);
+};
+
 // ═══════════════════════════════════════════════════════════════
 //                    ОБРАБОТЧИКИ СОБЫТИЙ
 // ═══════════════════════════════════════════════════════════════
@@ -191,33 +210,10 @@ const syncPreviewButtonState = (): void => {
 const setupCatalogEvents = (): void => {
   // При изменении каталога пересобираем галерею
   catalog.on("catalog:changed", buildCatalogView);
-
-  // Открытие подробной карточки товара
-  bus.on("card:open", ({ card: productId }: CardActionPayload) => {
-    catalog.selectProduct(productId);
-    const product = catalog.getProductById(productId);
-    if (!product) return;
-
-    const hasPriceTag = product.price !== null;
-
-    preview.render({
-      ...product,
-      inCart: cart.hasItem(product.id),
-    });
-
-    let content = preview.render({
-      id: product.id,
-      title: product.title,
-      price: product.price,
-      category: product.category,
-      image: product.image,
-      description: product.description,
-      inCart: cart.hasItem(product.id),
-    });
-    modal.open(content);
-
-    if (!hasPriceTag) preview.disableButton();
-  });
+  // Обработка открыти карточки товара
+  catalog.on("product:selected", showCard);
+  // Выбор карточки товара
+  bus.on("card:select", selectCard);
 
   // Добавление товара в корзину
   bus.on("card:add", ({ card: productId }: CardActionPayload) => {
@@ -246,7 +242,7 @@ const setupCartEvents = (): void => {
 
   // Открытие корзины
   bus.on("basket:open", () => {
-    let content = basket.render();
+    const content = basket.render();
     modal.open(content);
   });
 
@@ -274,7 +270,7 @@ const setupCheckoutEvents = (): void => {
   };
 
   // Показ ошибок валидации в формах
-  customer.on("form:errors", (errors: ValidationErrors) => {
+  customer.on("form:errors", (errors: IErrors) => {
     orderForm.validateForm(errors);
     contactsForm.validateForm(errors);
   });

@@ -1,6 +1,8 @@
 import { IEvents } from "../../base/Events.ts";
 import { ensureElement } from "../../../utils/utils.ts";
 import { Card } from "./Card.ts";
+import { CardHandlers } from "./CardHandlers.ts";
+
 import { TCatalogCard, CategoryKey } from "../../../types/index.ts";
 import { categoryMap, CDN_URL } from "../../../utils/constants.ts";
 
@@ -17,17 +19,22 @@ export class CatalogCard extends Card<TCatalogCard> {
 
   /** DOM-элемент изображения товара */
   protected imageElement: HTMLImageElement;
-  
+
+  private handlers: CardHandlers;
   /**
    * Создаёт экземпляр карточки каталога
    *
    * @param events - Брокер событий для взаимодействия с другими компонентами
    * @param container - Корневой HTML-элемент карточки
    */
-  constructor(protected events: IEvents, container: HTMLElement) {
+  constructor(
+    protected events: IEvents,
+    container: HTMLElement,
+    handlers: CardHandlers
+  ) {
     // Инициализируем родительский класс Card
     super(container);
-
+    this.handlers = handlers;
     // Получаем ссылку на элемент категории внутри контейнера
     this.categoryElement = ensureElement<HTMLElement>(
       ".card__category",
@@ -39,6 +46,10 @@ export class CatalogCard extends Card<TCatalogCard> {
       ".card__image",
       this.container
     );
+
+    this.container.addEventListener("click", () => {
+      this.handlers.onClick();
+    });
   }
 
   /**

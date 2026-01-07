@@ -101,11 +101,6 @@ export function testBuyer() {
     buyer.getField("email") === "new@example.com",
     "setField(): не обновил email"
   );
-  buyer.setField("payment", null);
-  console.assert(
-    buyer.getField("payment") === null,
-    "setField(): не установил null"
-  );
 
   console.log("\n✅ Все тесты выполнены!");
 }
