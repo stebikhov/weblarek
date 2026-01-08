@@ -1,5 +1,3 @@
-
-
 import { ensureElement } from "../../../utils/utils.ts";
 import { IEvents } from "../../base/Events.ts";
 import { Form } from "./Form.ts";
@@ -50,6 +48,22 @@ export class ContactsForm extends Form<TContactsForm> {
 
     // Подписываемся на событие ошибок валидации
     this._subscribeToValidationErrors();
+
+    this._subscribeToClearEvent();
+  }
+
+  /**
+   * Подписка на событие очистки формы
+   */
+  private _subscribeToClearEvent(): void {
+    this.events.on("form:clear", () => {
+      // Очищаем поля ввода
+      this.emailElement.value = "";
+      this.phoneElement.value = "";
+      // Деактивируем кнопку и убираем ошибки
+      this.isButtonValid = false;
+      this.errors = "";
+    });
   }
 
   /**
@@ -125,8 +139,6 @@ export class ContactsForm extends Form<TContactsForm> {
    * При получении ошибок запускает проверку формы
    */
   private _subscribeToValidationErrors(): void {
-
-
     // Обработчик события ошибок
     const handleValidationErrors = (errors: IErrors): void => {
       // Передаём ошибки в метод валидации

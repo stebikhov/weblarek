@@ -23,7 +23,6 @@ export class Basket extends Component<IBasket> {
   protected listElements: HTMLElement;
   protected priceElements: HTMLElement;
   protected basketButton: HTMLButtonElement;
-  private readonly EMPTY_MARKUP = "<div>Корзина пуста</div>";
 
   /**
    * Создаёт экземпляр компонента корзины
@@ -106,8 +105,8 @@ export class Basket extends Component<IBasket> {
    */
   private updateContent(nodes: HTMLElement[], empty: boolean): void {
     if (empty) {
-      // Корзина пуста — показываем сообщение-заглушку
-      this.listElements.innerHTML = this.EMPTY_MARKUP;
+      // Корзина пуста — контейнер нужно очистить
+      this.listElements.innerHTML = "";
     } else {
       // Есть товары — заменяем все дочерние элементы на новые
       // replaceChildren эффективнее innerHTML для массива элементов

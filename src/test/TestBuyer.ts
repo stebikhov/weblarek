@@ -83,24 +83,5 @@ export function testBuyer() {
     "validate(): есть ошибки при валидных данных"
   );
 
-  // 7. Тест getField
-  console.log("\n7. Тест getField()");
-  console.assert(
-    buyer.getField("email") === "user@example.com",
-    "getField(): вернул неверный email"
-  );
-  console.assert(
-    buyer.getField("payment") === "card",
-    "getField(): вернул неверный payment"
-  );
-
-  // 8. Тест setField
-  console.log("\n8. Тест setField()");
-  buyer.setField("email", "new@example.com");
-  console.assert(
-    buyer.getField("email") === "new@example.com",
-    "setField(): не обновил email"
-  );
-
   console.log("\n✅ Все тесты выполнены!");
 }

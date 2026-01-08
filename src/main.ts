@@ -262,12 +262,12 @@ const setupCartEvents = (): void => {
  */
 const setupCheckoutEvents = (): void => {
   // Маппинг полей формы на методы модели Buyer
-  const fieldSetters: Record<FormFieldName, (val: string) => void> = {
-    payment: (v) => customer.setField("payment", v as TPayment),
-    address: (v) => customer.setField("address", v),
-    email: (v) => customer.setField("email", v),
-    phone: (v) => customer.setField("phone", v),
-  };
+const fieldSetters: Record<FormFieldName, (val: string) => void> = {
+  payment: (v) => customer.update({ payment: v as TPayment }),
+  address: (v) => customer.update({ address: v }),
+  email: (v) => customer.update({ email: v }),
+  phone: (v) => customer.update({ phone: v })
+};
 
   // Показ ошибок валидации в формах
   customer.on("form:errors", (errors: IErrors) => {

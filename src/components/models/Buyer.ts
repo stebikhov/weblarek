@@ -39,6 +39,9 @@ export class Buyer extends EventEmitter {
       phone: "",
       address: "",
     };
+
+    this.emit("form:clear", this.getData());
+    this.emit("form:errors", this.validate());
   }
 
   /**
@@ -70,25 +73,6 @@ export class Buyer extends EventEmitter {
    */
   isValid(): boolean {
     return Object.keys(this.validate()).length === 0;
-  }
-
-  /**
-   * Получает конкретное поле данных покупателя
-   * @param field Ключ поля
-   * @returns Значение поля или null
-   */
-  getField<K extends keyof IBuyer>(field: K): IBuyer[K] {
-    return this.data[field];
-  }
-
-  /**
-   * Устанавливает конкретное поле данных покупателя
-   * @param field Ключ поля
-   * @param value Значение поля
-   */
-  setField<K extends keyof IBuyer>(field: K, value: IBuyer[K]): void {
-    this.data[field] = value;
-    this.emit("form:errors", this.validate());
   }
 }
 
