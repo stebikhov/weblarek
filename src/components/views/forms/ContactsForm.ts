@@ -48,22 +48,6 @@ export class ContactsForm extends Form<TContactsForm> {
 
     // Подписываемся на событие ошибок валидации
     this._subscribeToValidationErrors();
-
-    this._subscribeToClearEvent();
-  }
-
-  /**
-   * Подписка на событие очистки формы
-   */
-  private _subscribeToClearEvent(): void {
-    this.events.on("form:clear", () => {
-      // Очищаем поля ввода
-      this.emailElement.value = "";
-      this.phoneElement.value = "";
-      // Деактивируем кнопку и убираем ошибки
-      this.isButtonValid = false;
-      this.errors = "";
-    });
   }
 
   /**
@@ -204,5 +188,14 @@ export class ContactsForm extends Form<TContactsForm> {
       const errorMessage = actualErrors.join(", ");
       this.errors = errorMessage;
     }
+  }
+
+  clear() {
+    // Очищаем поля ввода
+    this.emailElement.value = "";
+    this.phoneElement.value = "";
+    // Деактивируем кнопку и убираем ошибки
+    this.isButtonValid = false;
+    this.errors = "";
   }
 }

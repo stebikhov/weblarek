@@ -106,7 +106,7 @@ export class Basket extends Component<IBasket> {
   private updateContent(nodes: HTMLElement[], empty: boolean): void {
     if (empty) {
       // Корзина пуста — контейнер нужно очистить
-      this.listElements.innerHTML = "";
+      this.listElements.replaceChildren();
     } else {
       // Есть товары — заменяем все дочерние элементы на новые
       // replaceChildren эффективнее innerHTML для массива элементов

@@ -252,4 +252,13 @@ export class OrderForm extends Form<TOrderForm> {
       this.errors = "";
     }
   }
+
+  clear() {
+    this.addressElement.value = "";
+    // Убираем активное состояние с обеих кнопок
+    this.cardButton.classList.remove("button_alt-active");
+    this.cashButton.classList.remove("button_alt-active");
+    this.isButtonValid = false;
+    this.errors = "";
+  }
 }
