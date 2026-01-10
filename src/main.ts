@@ -320,9 +320,19 @@ const setupCheckoutEvents = (): void => {
     }
   });
 
-  bus.on("form:clear", () => {
-    orderForm.clear();
-    contactsForm.clear();
+  customer.on("order:updated", () => {
+    const data = customer.getData();
+    const errors = customer.validate();
+
+    // Обновляем форму заказа
+    orderForm.addressValue = data.address || "";
+    orderForm.payment = data.payment || "";
+    orderForm.validateForm(errors);
+
+    // Обновляем форму контактов
+    contactsForm.emailValue = data.email || "";
+    contactsForm.phoneValue = data.phone || "";
+    contactsForm.validateForm(errors);
   });
 
   // Закрытие экрана успеха

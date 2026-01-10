@@ -189,13 +189,4 @@ export class ContactsForm extends Form<TContactsForm> {
       this.errors = errorMessage;
     }
   }
-
-  clear() {
-    // Очищаем поля ввода
-    this.emailElement.value = "";
-    this.phoneElement.value = "";
-    // Деактивируем кнопку и убираем ошибки
-    this.isButtonValid = false;
-    this.errors = "";
-  }
 }
