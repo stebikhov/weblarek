@@ -55,9 +55,6 @@ export class OrderForm extends Form<TOrderForm> {
 
     // Привязываем обработчики событий к элементам формы
     this._bindEventHandlers();
-
-    // Подписываемся на события валидации от родительского компонента
-    this._subscribeToValidationEvents();
   }
 
   /**
@@ -128,23 +125,6 @@ export class OrderForm extends Form<TOrderForm> {
     this.cardButton.addEventListener("click", onCardButtonClick);
     this.addressElement.addEventListener("input", onAddressInput);
     this.nextButton.addEventListener("click", onNextButtonClick);
-  }
-
-  /**
-   * Подписывается на события валидации формы.
-   */
-  private _subscribeToValidationEvents(): void {
-    // Имя события, содержащего ошибки валидации
-    const validationEventName = "form:errors";
-
-    // Обработчик события валидации
-    const onValidationErrors = (errors: IErrors): void => {
-      // Передаём ошибки в метод валидации формы
-      this.validateForm(errors);
-    };
-
-    // Подписываемся на событие
-    this.events.on(validationEventName, onValidationErrors);
   }
 
   /**
@@ -251,14 +231,5 @@ export class OrderForm extends Form<TOrderForm> {
       // Очищаем поле ошибок, если форма валидна
       this.errors = "";
     }
-  }
-
-  clear() {
-    this.addressElement.value = "";
-    // Убираем активное состояние с обеих кнопок
-    this.cardButton.classList.remove("button_alt-active");
-    this.cashButton.classList.remove("button_alt-active");
-    this.isButtonValid = false;
-    this.errors = "";
   }
 }

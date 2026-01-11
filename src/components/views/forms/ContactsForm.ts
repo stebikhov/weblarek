@@ -46,8 +46,6 @@ export class ContactsForm extends Form<TContactsForm> {
     // Настраиваем кнопку отправки формы
     this._configureSubmitButton();
 
-    // Подписываемся на событие ошибок валидации
-    this._subscribeToValidationErrors();
   }
 
   /**
@@ -116,21 +114,6 @@ export class ContactsForm extends Form<TContactsForm> {
 
     // Привязываем обработчик к кнопке
     this.nextButton.addEventListener("click", handleSubmitClick);
-  }
-
-  /**
-   * Подписка на события валидации формы
-   * При получении ошибок запускает проверку формы
-   */
-  private _subscribeToValidationErrors(): void {
-    // Обработчик события ошибок
-    const handleValidationErrors = (errors: IErrors): void => {
-      // Передаём ошибки в метод валидации
-      this.validateForm(errors);
-    };
-
-    // Подписываемся на событие ошибок
-    this.events.on("form:errors", handleValidationErrors);
   }
 
   /**

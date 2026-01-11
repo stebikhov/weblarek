@@ -39,9 +39,7 @@ export class Buyer extends EventEmitter {
       phone: "",
       address: "",
     };
-
-    this.emit("form:clear", this.getData());
-    this.emit("form:errors", this.validate());
+    this.emit("order:updated");
   }
 
   /**
