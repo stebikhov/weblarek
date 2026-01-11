@@ -248,7 +248,6 @@ const setupCartEvents = (): void => {
 
   // Переход к оформлению заказа
   bus.on("basket:ready", () => {
-    customer.clear();
     const { payment, address } = customer.getData();
     orderForm.payment = payment;
     orderForm.addressValue = address;
