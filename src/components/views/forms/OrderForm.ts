@@ -79,13 +79,13 @@ export class OrderForm extends Form<TOrderForm> {
     // Обработчик клика по кнопке "Наличные"
     const onCashButtonClick = (): void => {
       // Устанавливаем способ оплаты "наличные"
-      this.setPayment("cash");
+      this._updatePayment("cash");
     };
 
     // Обработчик клика по кнопке "Карта"
     const onCardButtonClick = (): void => {
       // Устанавливаем способ оплаты "карта"
-      this.setPayment("card");
+      this._updatePayment("card");
     };
 
     // Обработчик ввода в поле адреса
@@ -128,37 +128,24 @@ export class OrderForm extends Form<TOrderForm> {
   }
 
   /**
-   * Устанавливает выбранный способ оплаты.
-   * Обновляет визуальное состояние кнопок и отправляет событие об изменении.
+   * Обновляет способ оплаты и уведомляет систему о его изменении.
+   * Устанавливает новое значение способа оплаты через сеттер (для синхронизации интерфейса)
+   * и генерирует событие 'order:change' с информацией о поле и значении.
+   * Используется при взаимодействии пользователя с кнопками выбора оплаты.
+   *
    * @param payment - Выбранный способ оплаты ('cash' или 'card')
+   *
+   * @emits order:change — Событие изменения поля формы, передаёт объект с полями:
+   * - `field`: имя изменённого поля ('payment')
+   * - `value`: новое значение способа оплаты
    */
-  private setPayment(payment: TPayment): void {
-    // CSS-класс активной кнопки
-    const activeClass = "button_alt-active";
+  private _updatePayment(payment: TPayment) {
+    this.payment = payment;
 
-    // Сначала убираем активное состояние с обеих кнопок
-    this.cardButton.classList.remove(activeClass);
-    this.cashButton.classList.remove(activeClass);
-
-    // Определяем, какую кнопку нужно активировать
-    const isCardPayment = payment === "card";
-    const isCashPayment = payment === "cash";
-
-    // Активируем соответствующую кнопку
-    if (isCardPayment) {
-      this.cardButton.classList.add(activeClass);
-    } else if (isCashPayment) {
-      this.cashButton.classList.add(activeClass);
-    }
-
-    // Формируем данные об изменении способа оплаты
-    const paymentChangeData = {
+    this.events.emit("order:change", {
       field: "payment",
       value: payment,
-    };
-
-    // Отправляем событие об изменении
-    this.events.emit("order:change", paymentChangeData);
+    });
   }
 
   /**

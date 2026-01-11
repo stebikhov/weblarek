@@ -45,7 +45,6 @@ export class ContactsForm extends Form<TContactsForm> {
 
     // Настраиваем кнопку отправки формы
     this._configureSubmitButton();
-
   }
 
   /**
